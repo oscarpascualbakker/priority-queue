@@ -7,6 +7,8 @@ require_once 'PriorityQueueInterface.php';
  * This priority queue is based on the 'heap' concept (a 'heap' is an ordered stack) and is
  * implemented using a binary tree.
  * It's first element should be 1.
+ *
+ * @author Oscar Pascual <oscar.pascual@gmail.com>
  */
 class PriorityQueue implements PriorityQueueInterface
 {
