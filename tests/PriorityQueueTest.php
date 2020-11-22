@@ -82,6 +82,21 @@ class PriorityQueueTest extends TestCase
 
 
     /**
+     * Get an element and change it's priority to 1.  It should move up to the first place.
+     *
+     * @return void
+     */
+    public function test_modify_priority_of_element()
+    {
+        static::$queue->change_priority("Test item 1", 1);
+
+        //And now, if we pop the highest priority element it should be "Element 1".
+        $item = static::$queue->pop();
+        $this->assertEquals("Test item 1", $item);
+    }
+
+
+    /**
      * Test the capture of an exception.
      * In the previous test there were 6 elements left in the queue.
      *
@@ -89,7 +104,7 @@ class PriorityQueueTest extends TestCase
      */
     public function test_exception_thrown_when_popping_on_empty_queue()
     {
-        $this->assertEquals(6, static::$queue->count());
+        $this->assertEquals(5, static::$queue->count());
         $this->assertFalse(static::$queue->isEmpty());
 
         $this->expectException(EmptyQueueException::class);

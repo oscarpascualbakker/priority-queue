@@ -10,7 +10,7 @@ In this queue, priorities are:
 There are lots of uses for priority queues in the real world.  Here just some examples:
 
 * 'On the fly' ordering.
-* Various algorithmes, like Dijkstra and Prim.
+* Various algorithms, like Dijkstra and Prim.
 * Managing Emergency Room's priority (use aging techniques!).
 * Get the top N items of a collection.
 * Managing shared resources between various processes.
@@ -59,8 +59,9 @@ By contrary, to pop an element we perform a **'down-heap'** operation:
 
 Additional operations could be:
 
+* Change the priority of an element in the queue (implemented!).
 * Apply aging techniques to increase priority of old elements in order to avoid starvation death.  For this purpose there is already a timestamp in the queue.
-* Print the queue.
+* Print the queue (implemented!).
 
 
 ### Cost analysis
@@ -73,7 +74,7 @@ Time complexity analysis of this implementation in big O notation.
 | count | O(1) |
 | push | O(log n) in worst case |
 | pop | O(log n) in worst case |
-
+| change_priority | O(log n) in worst case |
 
 ## Installation
 First, clone this repository:
@@ -89,7 +90,7 @@ $ docker build -t priority-queue .
 $ docker container run -it --rm --name my-priority-queue priority-queue php start.php
 ```
 
-The output contains the number of elements in the queue, the queue elements with its priority, and the extraction of two elements for demonstration purposes.
+The output contains the number of elements in the queue, the queue elements with its priority, and some operations for demonstration purposes.
 
 Tests can be run this way:
 
@@ -98,6 +99,7 @@ $ docker container run -it --rm --name my-priority-queue priority-queue vendor/b
 ```
 
 If you would like to modify the code, mount a volume:
+(use *%cd%* on Windows, or *${PWD}* on Mac)
 
 ```sh
 $ docker container run --rm -v $(pwd):/usr/src/queue/ priority-queue php start.php
