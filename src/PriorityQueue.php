@@ -28,6 +28,7 @@ class PriorityQueue implements PriorityQueueInterface
 
     /**
      * Create a new queue (an array) without elements in it.
+     * Create the hashmap.
      */
     public function __construct($algorithm = 'crc32b')
     {
@@ -51,7 +52,7 @@ class PriorityQueue implements PriorityQueueInterface
 
 
     /**
-     * This method returns a boolean indicating that an element is present or not in the priority queue.
+     * This method returns a boolean indicating wether an element is present or not in the priority queue.
      * For speed, this is done using a hashmap.
      *
      * @param Mixed $element
@@ -59,11 +60,7 @@ class PriorityQueue implements PriorityQueueInterface
      */
     public function contains($element): bool
     {
-        if (isset($this->hashmap[hash($this->algorithm, $element)])) {
-            return true;
-        } else {
-            return false;
-        }
+        return isset($this->hashmap[hash($this->algorithm, $element)]);
     }
 
 
@@ -119,7 +116,7 @@ class PriorityQueue implements PriorityQueueInterface
         $this->num_elements--;
         array_pop($this->queue);
 
-        //It's also necessary to unset the element's position.
+        //It's also necessary to unset the element's position inside the hashmap.
         unset($this->hashmap[hash($this->algorithm, $first_element['element'])]);
 
         //The last element is placed on top of the heap, and then "down-heaped".
@@ -131,8 +128,8 @@ class PriorityQueue implements PriorityQueueInterface
 
     /**
      * Change one element's priority.
-     * This is done by searching the element in the queue, change it's priority, and move it up or down to it's
-     * correct place.
+     * This is done by searching the element in the queue, change it's priority, and move it
+     * up or down to it's correct place.
      *
      * Possible cases:
      *    a) it's the top element of the priority queue and new priority is higher: do nothing!
@@ -140,6 +137,8 @@ class PriorityQueue implements PriorityQueueInterface
      *    c) it's the last element of the priority queue and new priority is higher: perform up-heap.
      *    d) it's the last element of the priority queue and new priority is lower: do nothing!
      *    e) it's an intermediate element: check what operation to perform.
+     *
+     * Important: cost for this operation is O(log n) in worst case, thanks to the hashmap.
      *
      * @return bool
      */
@@ -151,20 +150,30 @@ class PriorityQueue implements PriorityQueueInterface
         if ($pos) {
             // It's the first element, and the new priority is lower than current
             // Element must be down-heaped
+            // Otherwise... do nothing.
             if (($pos == 1) && ($this->queue[$pos]['priority'] < $new_priority)) {
                 $this->down_heap($element, $pos, $new_priority);
                 return true;
+            } else if (($pos == 1) && ($this->queue[$pos]['priority'] > $new_priority)) {
+                return true;
+
 
             // It's the last element, and the new priority is higher than current
             // Element must be up-heaped
+            // Otherwise... do nothing.
             } else if (($pos == $this->num_elements) && ($this->queue[$pos]['priority'] > $new_priority)) {
                 $this->up_heap($element, $pos, $new_priority);
                 return true;
+            } else if (($pos == $this->num_elements) && ($this->queue[$pos]['priority'] < $new_priority)) {
+                return true;
+
 
             } else {
                 // Element is somewhere in the queue... let's check father's priority and decide.
                 $fathers_position = intdiv($pos, 2);
 
+                // And now, if father's priority is higher, we need to up-heap the element.  If not,
+                // we perform a down-heap without the need to check child's priority.
                 if ($new_priority < $this->queue[$fathers_position]['priority']) {
                     $this->up_heap($element, $pos, $new_priority);
                 } else {
@@ -206,23 +215,8 @@ class PriorityQueue implements PriorityQueueInterface
 
 
     /**
-     * Just a help function to print out the queue
-     *
-     * @return void
-     */
-    public function print(): void
-    {
-        for ($i=1; $i<=$this->num_elements; $i++) {
-            echo $i." - ".$this->queue[$i]['priority']." - ".$this->queue[$i]['element']."\n";
-        }
-    }
-
-
-    /**
      * This method pushes down one particular element in the heap from its current position.
      * It also updates its hashmap position.
-     *
-     * Important: cost for this operation is O(log n) in worst case, thanks to the hashmap.
      *
      * @param Mixed $element     The element to move down in the heap.
      * @param Integer $pos       Position where the element is now.
@@ -245,6 +239,7 @@ class PriorityQueue implements PriorityQueueInterface
         while (($tops_son < $this->num_elements) && ($this->queue[$tops_son]['priority'] < $priority)) {
             $this->queue[$top] = $this->queue[$tops_son];
             $this->hashmap[hash($this->algorithm, $this->queue[$top]['element'])] = $top;
+
             $top               = $tops_son;
             $tops_son          = $top * 2;
 
@@ -253,6 +248,8 @@ class PriorityQueue implements PriorityQueueInterface
                 $tops_son++;
             }
         }
+
+        // Final destination for the element is found.
         $this->queue[$top]['element']   = $element;
         $this->queue[$top]['priority']  = $priority;
         $this->queue[$top]['timestamp'] = time();
@@ -265,8 +262,6 @@ class PriorityQueue implements PriorityQueueInterface
     /**
      * This method lifts up one particular element in the heap from its current position.
      * It also updates its hashmap position.
-     *
-     * Important: cost for this operation is O(log n) in worst case, thanks to the hashmap.
      *
      * @param Mixed $element     The element to raise up in the heap.
      * @param Integer $pos       Position where the element is now.
@@ -286,9 +281,9 @@ class PriorityQueue implements PriorityQueueInterface
 
             $next_position               = $fathers_position;
             $fathers_position            = intdiv($next_position, 2);
-
         }
-        // Final destination of element
+
+        // Final destination for the element is found.
         $this->queue[$next_position]['element']   = $element;
         $this->queue[$next_position]['priority']  = $priority;
         $this->queue[$next_position]['timestamp'] = time();
@@ -312,6 +307,19 @@ class PriorityQueue implements PriorityQueueInterface
             return $this->hashmap[$position];
         } else {
             return false;
+        }
+    }
+
+
+    /**
+     * Just a help function to print out the queue
+     *
+     * @return void
+     */
+    public function print(): void
+    {
+        for ($i=1; $i<=$this->num_elements; $i++) {
+            echo $i." - ".$this->queue[$i]['priority']." - ".$this->queue[$i]['element']."\n";
         }
     }
 
